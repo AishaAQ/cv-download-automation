@@ -20,7 +20,20 @@ results = service.files().list(
 files = results.get('files', [])
 
 for f in files:
+
+    file_id = f['id']
+
+    request = service.files().get_media(fileId=file_id)
+
     print(f"{f['name']} ({f['id']})")
 
+    fh = io.FileIO('DownloadedDoc.docx', 'wb')
+    downloader = MediaIoBaseDownload(fh, request)
 
+    done = False
+    while not done:
+        status, done = downloader.next_chunk()
+        print(f"Download {int(status.progress() * 100)}% complete")
+
+    print("Download finished!")
 
