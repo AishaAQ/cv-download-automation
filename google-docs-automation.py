@@ -40,6 +40,17 @@ def download(file_id,file_name,file_type, service):
 
     print("Download finished!")
 
+def check_modified(modified_time_stamp,local_last_modified_timestamp):
+        
+    modified_time = datetime.strptime(modified_time_stamp[:-1], "%Y-%m-%dT%H:%M:%S.%f")
+    modified_time = modified_time.replace(tzinfo=timezone.utc)
+    if local_last_modified_timestamp:
+        local_last_modified_time = datetime.strptime(local_last_modified_timestamp[:-1], "%Y-%m-%dT%H:%M:%S.%f").replace(tzinfo=timezone.utc)
+    else:
+        local_last_modified_time = None
+    
+    return local_last_modified_time is None or modified_time > local_last_modified_time
+
 def main():
 
     SERVICE_ACCOUNT_FILE = 'service-account.json'
@@ -69,17 +80,10 @@ def main():
         file_id = f['id']
         file_name = f['name']
         modified_time_stamp = f['modifiedTime']
-        
-        modified_time = datetime.strptime(modified_time_stamp[:-1], "%Y-%m-%dT%H:%M:%S.%f")
-        modified_time = modified_time.replace(tzinfo=timezone.utc)
 
         local_last_modified_timestamp = last_modified.get(file_id)
-        if local_last_modified_timestamp:
-            local_last_modified_time = datetime.strptime(local_last_modified_timestamp[:-1], "%Y-%m-%dT%H:%M:%S.%f").replace(tzinfo=timezone.utc)
-        else:
-            local_last_modified_time = None
 
-        if local_last_modified_time is None or modified_time > local_last_modified_time:
+        if check_modified(modified_time_stamp,local_last_modified_timestamp):
             
             print(f"File changed: {file_name}, downloading...")
             download(file_id,file_name,'pdf',service)
