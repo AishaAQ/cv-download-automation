@@ -27,8 +27,8 @@ subprocess.run(
         "/create",
         "/tn", "AutoDownloadCVGoogleDocs",
         "/tr", f'cmd /c "{BATCH_PATH}"',
-        "/sc", "minute",
-        "/mo", "1",
+        "/sc", "hourly",
+        "/mo", "12",
         "/f"
     ],
     check=True
