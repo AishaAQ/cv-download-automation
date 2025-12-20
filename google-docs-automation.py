@@ -2,9 +2,10 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 from google.oauth2 import service_account
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 import os
+import json
 
 load_dotenv()
 
@@ -42,6 +43,13 @@ def download(file_id,file_name,file_type, service):
 def main():
 
     SERVICE_ACCOUNT_FILE = 'service-account.json'
+    LAST_MODIFIED_FILE = f'{BASE_PATH}/last_modified.json'
+
+    try:
+        with open(LAST_MODIFIED_FILE, "r") as f:
+            last_modified = json.load(f)
+    except FileNotFoundError:
+        last_modified = {}
 
     credentials = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE,
@@ -51,7 +59,7 @@ def main():
     service = build('drive', 'v3', credentials=credentials)
 
     results = service.files().list(
-        pageSize=100, fields="files(id, name)"
+        pageSize=100, fields="files(id, name, modifiedTime)"
     ).execute()
 
     files = results.get('files', [])
@@ -60,10 +68,31 @@ def main():
 
         file_id = f['id']
         file_name = f['name']
+        modified_time_stamp = f['modifiedTime']
+        
+        modified_time = datetime.strptime(modified_time_stamp[:-1], "%Y-%m-%dT%H:%M:%S.%f")
+        modified_time = modified_time.replace(tzinfo=timezone.utc)
 
-        print(f"{f['name']} ({f['id']})")
+        local_last_modified_timestamp = last_modified.get(file_id)
+        if local_last_modified_timestamp:
+            local_last_modified_time = datetime.strptime(local_last_modified_timestamp[:-1], "%Y-%m-%dT%H:%M:%S.%f").replace(tzinfo=timezone.utc)
+        else:
+            local_last_modified_time = None
 
-        download(file_id,file_name,'pdf',service)
-        download(file_id,file_name,'docx',service)
+        if local_last_modified_time is None or modified_time > local_last_modified_time:
+            
+            print(f"File changed: {file_name}, downloading...")
+            download(file_id,file_name,'pdf',service)
+            download(file_id,file_name,'docx',service)
+        
+            last_modified[file_id] = modified_time_stamp
+        
+        else:
+            print(f"No change: {file_name}, skipping download.")
+    
+    with open(LAST_MODIFIED_FILE, "w") as f:
+        json.dump(last_modified, f, indent=2)
+
+    print("Done checking all files.")
 
 main()
