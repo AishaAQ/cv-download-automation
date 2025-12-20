@@ -1,10 +1,16 @@
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 from google.oauth2 import service_account
-import io
 from datetime import datetime
+from pathlib import Path
+from dotenv import load_dotenv
+import os
 
-def download(file_id,file_name,file_type):
+load_dotenv()
+
+BASE_PATH = os.getenv("BASE_PATH")
+
+def download(file_id,file_name,file_type, service):
 
     if file_type == 'pdf':
         mime_type = 'application/pdf'
@@ -13,13 +19,17 @@ def download(file_id,file_name,file_type):
     
     name_list = file_name.split('CV')
     folder_name = name_list[1].replace('_', ' ')[1:]
+    if file_type == 'pdf': file_name = f"{file_name.split('CV')[0]}CV"
     
     request = service.files().export_media(
         fileId=file_id,
         mimeType=mime_type
     )
 
-    fh = io.FileIO('DownloadedDoc.' + file_type, 'wb')
+    path = Path(f'{BASE_PATH}/{folder_name}')
+    path.mkdir(parents=True, exist_ok=True)
+
+    fh = open(path / f"{file_name}.{file_type}", "wb")
     downloader = MediaIoBaseDownload(fh, request)
 
     done = False
@@ -29,27 +39,31 @@ def download(file_id,file_name,file_type):
 
     print("Download finished!")
 
-SERVICE_ACCOUNT_FILE = 'service-account.json'
+def main():
 
-credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE,
-    scopes=['https://www.googleapis.com/auth/drive.readonly'] 
-)
+    SERVICE_ACCOUNT_FILE = 'service-account.json'
 
-service = build('drive', 'v3', credentials=credentials)
+    credentials = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE,
+        scopes=['https://www.googleapis.com/auth/drive.readonly'] 
+    )
 
-results = service.files().list(
-    pageSize=100, fields="files(id, name)"
-).execute()
+    service = build('drive', 'v3', credentials=credentials)
 
-files = results.get('files', [])
+    results = service.files().list(
+        pageSize=100, fields="files(id, name)"
+    ).execute()
 
-for f in files:
+    files = results.get('files', [])
 
-    file_id = f['id']
-    file_name = f['name']
+    for f in files:
 
-    print(f"{f['name']} ({f['id']})")
+        file_id = f['id']
+        file_name = f['name']
 
-    download(file_id,file_name,'pdf')
-    download(file_id,file_name,'docx')
+        print(f"{f['name']} ({f['id']})")
+
+        download(file_id,file_name,'pdf',service)
+        download(file_id,file_name,'docx',service)
+
+main()
