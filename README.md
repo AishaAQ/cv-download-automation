@@ -44,7 +44,7 @@ python -m pip install -r requirements.txt
 ```bash
 python google-docs-automation.py
 ```
-3. Run the `` script to create a scheduled task that runs every 12 hours and downloads the modified Google Docs files
+3. Run the `schedule-download-task.py` script to create a scheduled task that runs every 12 hours and downloads the modified Google Docs files
 ```bash
 python schedule-download-task.py   
 ```
