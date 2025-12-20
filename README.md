@@ -22,7 +22,7 @@ I needed an easier way to download my CV files from Google Docs, instead of manu
 
 ## 🛠️ Project Setup
 
-1. The Google Docs files need to follow one of the following naming patterns: `<your_name>_CV_<job_role>` or `<your_name>_CV`
+1. The Google Docs files need to follow one of the following naming patterns:<br>`<your_name>_CV_<job_role>` or `<your_name>_CV`
 2. Follow [this guide](https://developers.google.com/workspace/guides/create-project) to create a Google Cloud project.
 3. Enable the Google Drive API in the created Google Cloud project following [this link](https://console.cloud.google.com/apis/enableflow;apiid=drive.googleapis.com).
 4. Follow [this](https://docs.cloud.google.com/iam/docs/service-accounts-create) to create a service account in Google Cloud if you do not have one already.
