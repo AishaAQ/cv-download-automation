@@ -13,7 +13,7 @@ LOG_FILE_NAME = 'scheduled-automation.log'
 #Create batch file to execute the python script
 batch_content = f"""@echo off
 cd /d {WORKING_DIR}
-echo Run at %date% %time% >> "{LOG_FILE_NAME}"
+echo Run at %date% %time% > "{LOG_FILE_NAME}"
 python "{SCRIPT_FILE_NAME}" >> "{LOG_FILE_NAME}" 2>&1
 """
 with open(BATCH_PATH, "w") as f:
