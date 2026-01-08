@@ -1,6 +1,6 @@
 # 🔄 CV Google Docs Download Automation Script
 
-A Python script to automate downloading CVs from Google Docs on Google Drive as Word and PDF documents.
+A Python script to automate downloading Google Docs files of CVs from Google Drive as Word and PDF documents.
 
 ## ⚙️ Technologies
 
