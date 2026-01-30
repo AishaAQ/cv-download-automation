@@ -11,6 +11,8 @@ load_dotenv()
 
 BASE_PATH = os.getenv("BASE_PATH")
 
+keywords = ['CV', 'Cover_Letter']
+
 def download(file_id,file_name,file_type, service):
 
     if file_type == 'pdf':
@@ -18,9 +20,14 @@ def download(file_id,file_name,file_type, service):
     else:
         mime_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     
-    name_list = file_name.split('CV')
+    for k in keywords:
+        if k in file_name:
+            keyword = k
+            break
+
+    name_list = file_name.split(keyword)
     folder_name = name_list[1].replace('_', ' ')[1:]
-    if file_type == 'pdf': file_name = f"{file_name.split('CV')[0]}CV"
+    if file_type == 'pdf': file_name = f"{file_name.split(keyword)[0]}{keyword}"
     
     request = service.files().export_media(
         fileId=file_id,
@@ -99,4 +106,9 @@ def main():
 
     print("Done checking all files.")
 
-main()
+try:
+    main()
+except Exception as e:
+    print(e)
+    input('enter to close')
+
